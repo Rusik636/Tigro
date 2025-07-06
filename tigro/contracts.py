@@ -9,7 +9,7 @@ SOLID:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Protocol, Callable, Awaitable, Sequence
+from typing import Protocol, Callable, Awaitable, Sequence, Any
 
 from shared.schemas import TgEvent, TgResponse
 
@@ -37,10 +37,9 @@ class EventSource(Protocol):
 
 
 # ---------------- Высокоуровневые абстракции ----------------
-class Handler(ABC):
+class Handler(Protocol):
     """Пользовательский хендлер."""
 
-    @abstractmethod
     async def __call__(self, ctx: "Ctx") -> None: ...
 
 
@@ -69,10 +68,8 @@ class Ctx(ABC):
     """
 
     @abstractmethod
-    async def send_message(self, text: str, **kwargs) -> None: ...
+    async def send_message(self, text: str, **kwargs: Any) -> None: ...
 
     @abstractmethod
-    async def edit_message(self, text: str, **kwargs) -> None: ...
+    async def edit_message(self, text: str, **kwargs: Any) -> None: ...
 
-    @abstractmethod
-    async def flush(self) -> None: ...

@@ -10,8 +10,7 @@ SOLID:
 """
 from __future__ import annotations
 
-import asyncio
-from typing import Iterable, List, Dict
+from typing import Iterable, Iterator, List, Dict, Any, Literal, cast
 
 from shared.schemas import TgEvent, TgResponse
 from tigro.contracts import (
@@ -40,7 +39,7 @@ class ResponseCollector:
         """Поместить ответ в буфер."""
         self._buffer.append(response)
 
-    def __iter__(self) -> Iterable[TgResponse]:
+    def __iter__(self) -> Iterator[TgResponse]:
         return iter(self._buffer)
 
 
@@ -62,6 +61,7 @@ class ResponseDispatcher:
     ) -> None:
         for resp in responses:
             await self._publisher.publish(user_id, resp)
+        return None
 
 
 # ------------------------------------------------------------------ #
@@ -80,30 +80,37 @@ class Context(Ctx):
         self._collector = collector
 
     # ---------- публичные методы ----------
-    async def send_message(self, text: str, **kwargs) -> None:
+    async def send_message(self, text: str, **kwargs: Any) -> None:
         """Сформировать команду «sendMessage»."""
         self._push("send_message", text, kwargs)
+        return None
 
-    async def edit_message(self, text: str, **kwargs) -> None:
+    async def edit_message(self, text: str, **kwargs: Any) -> None:
         """Сформировать команду «editMessageText»."""
         meta = {"edit_msg_id": kwargs.pop("message_id", self._event.message_id)}
         self._push("edit_message", text, kwargs, meta)
+        return None
 
-    async def flush(self) -> None:
-        """
-        Метод оставлен для обратной совместимости (если хендлеру нужно
-        отправить ответы досрочно).
-        Здесь ничего не делает, т.к. отправка происходит в Router.
-        """
-        ...
 
     # ---------- внутреннее ----------
     def _push(
-        self, action: str, text: str, kwargs: Dict, meta: Dict | None = None
+        self,
+        action: str,
+        text: str,
+        kwargs: Dict[str, Any],
+        meta: Dict[str, Any] | None = None,
     ) -> None:
         self._collector.add(
             TgResponse(
-                action=action,
+                action=cast(
+                    Literal[
+                        "send_message",
+                        "edit_message",
+                        "answer_callback",
+                        "none",
+                    ],
+                    action,
+                ),
                 text=text,
                 metadata=meta or {},
                 **kwargs,
@@ -127,7 +134,7 @@ class Router:
     6. Выполняет `after`-middlewares.
     """
 
-    __slots__ = ("_routes", "_collector", "_dispatcher", "_middlewares")
+    __slots__ = ("_routes", "_dispatcher", "_middlewares")
 
     def __init__(
         self,
@@ -135,7 +142,6 @@ class Router:
         middlewares: List[Middleware] | None = None,
     ) -> None:
         self._routes: List[tuple[Matcher, Handler]] = []
-        self._collector = ResponseCollector()
         self._dispatcher = ResponseDispatcher(publisher)
         self._middlewares = middlewares or []
 
@@ -147,7 +153,8 @@ class Router:
     # ---------- основной метод ----------
     async def dispatch(self, event: TgEvent) -> None:
         """Обрабатывает одно событие TgEvent."""
-        ctx = Context(event, self._collector)
+        collector = ResponseCollector()
+        ctx = Context(event, collector)
 
         # 1. Pre-middlewares
         for mw in self._middlewares:
@@ -165,8 +172,9 @@ class Router:
             await ctx.send_message("Команда не распознана.")
 
         # 3. Публикация
-        await self._dispatcher.dispatch(event.user_id, self._collector)
+        responses = list(collector)
+        await self._dispatcher.dispatch(event.user_id, responses)
 
         # 4. Post-middlewares
         for mw in self._middlewares:
-            await mw.after(event, self._collector)
+            await mw.after(event, responses)
