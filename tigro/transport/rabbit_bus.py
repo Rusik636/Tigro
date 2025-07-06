@@ -4,7 +4,7 @@
 Отвечает только за отправку сообщений в правильную очередь,
 не содержит бизнес-логики.
 """
-from faststream.rabbit import RabbitBroker
+from faststream.rabbit import RabbitBroker  # type: ignore
 
 from shared.schemas import TgResponse
 from tigro.contracts import ResponsePublisher
@@ -26,3 +26,4 @@ class RabbitPublisher(ResponsePublisher):
             response.dict(),
             routing_key=f"event.user.response.{user_id}",
         )
+        return None

@@ -1,4 +1,6 @@
 # shared/schemas.py
+"""Pydantic-схемы событий и ответов Telegram."""
+
 from pydantic import BaseModel
 from typing import Optional, Literal, Dict, Any
 
@@ -17,4 +19,5 @@ class TgResponse(BaseModel):
     text: Optional[str] = None
     next_state: Optional[str] = None
     markup: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
     error: Optional[str] = None

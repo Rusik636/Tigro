@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tigro"
+version = "0.1.1"
+description = "Microservice framework for Telegram bots"
+authors = [{name="Tigro"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["pydantic"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.ruff]
+line-length = 88
+
+[tool.mypy]
+python_version = "3.10"
+
