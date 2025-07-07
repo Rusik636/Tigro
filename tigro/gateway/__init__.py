@@ -17,6 +17,24 @@ DIP  – Gateway зависит от абстракций Renderer, RpcTransport
 """
 
 from .rpc import RpcClient  # noqa: F401 – re-export
-from .aiogram_gateway import AiogramGateway, run_gateway  # noqa: F401
+from .aiogram_gateway import AiogramGateway
+# from .telebot_gateway import TelebotGateway  # если реализовано
+
+GATEWAY_REGISTRY = {
+    "aiogram": AiogramGateway,
+    # "telebot": TelebotGateway,
+}
+
+def get_gateway_class(framework: str):
+    try:
+        return GATEWAY_REGISTRY[framework]
+    except KeyError:
+        raise ValueError(f"Gateway for framework '{framework}' is not implemented")
+
+def run_gateway(token: str, broker_url: str = "amqp://guest:guest@localhost/", framework: str = "aiogram"):
+    GatewayClass = get_gateway_class(framework)
+    gateway = GatewayClass(token=token, broker_url=broker_url)
+    import asyncio
+    asyncio.run(gateway.run())
 
 __all__ = ("AiogramGateway", "run_gateway", "RpcClient") 
