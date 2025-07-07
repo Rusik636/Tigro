@@ -7,7 +7,7 @@ from typing import Awaitable, Callable, TypeVar
 from tigro.matchers import Callback, Command, Predicate
 from tigro.contracts import Matcher
 from tigro.core import Context
-from shared.schemas import TgEvent
+from tigro.schemas import TgEvent
 
 F = TypeVar("F", bound=Callable[[Context], Awaitable[None]])
 

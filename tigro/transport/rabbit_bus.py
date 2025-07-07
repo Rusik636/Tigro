@@ -24,6 +24,12 @@ class RabbitPublisher(ResponsePublisher):
     async def publish(self, user_id: int, response: TgResponse) -> None:  # noqa: D401
         await self._broker.publish(
             response.dict(),
-            routing_key=f"event.user.response.{user_id}",
+            # Отправляем все ответы в единую очередь, а сопоставление выполняем по correlation_id
+            # Это упрощает настройку Gateway-бота и избавляет от необходимости динамически
+            # создавать очереди под каждого пользователя.
+            routing_key="event.user.response",
         )
+        # 👇 Отладочная информация — видно, что ответ отправлен в брокер
+        print(
+            f"[🐇 RabbitPublisher] Ответ отправлен | user_id={user_id} | correlation_id={response.correlation_id}")
         return None

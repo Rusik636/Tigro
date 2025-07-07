@@ -11,7 +11,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Protocol, Callable, Awaitable, Sequence, Any
 
-from shared.schemas import TgEvent, TgResponse
+from tigro.schemas import TgEvent, TgResponse
 
 
 # ---------------- Транспортные абстракции ----------------
@@ -72,4 +72,11 @@ class Ctx(ABC):
 
     @abstractmethod
     async def edit_message(self, text: str, **kwargs: Any) -> None: ...
+
+
+class MessageCommand(ABC):
+    """Абстракция команды для отправки/редактирования сообщений."""
+    @abstractmethod
+    def to_response(self, event: TgEvent) -> TgResponse:
+        ...
 

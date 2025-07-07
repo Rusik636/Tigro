@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from tigro.contracts import Matcher
-from shared.schemas import TgEvent
+from tigro.schemas import TgEvent
 
 
 @dataclass(slots=True)
@@ -26,7 +26,9 @@ class Callback(Matcher):
     data: str
 
     def match(self, event: TgEvent) -> bool:
-        return event.callback_data == self.data
+        result = event.callback_data == self.data
+        print(f"[🔍 Callback Matcher] data='{self.data}' vs event.callback_data='{event.callback_data}' -> {result}")
+        return result
 
 
 class Predicate(Matcher):
