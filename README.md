@@ -161,8 +161,8 @@ A: Передайте список middlewares в Router.
 ---
 
 ## 🧑‍💻 Контакты и поддержка
-- Telegram: @your_support
-- Email: support@example.com
+- Telegram: @aivan992
+- Email: rurus.info@mail.ru
 
 ---
 
