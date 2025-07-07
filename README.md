@@ -167,7 +167,7 @@ A: Передайте список middlewares в Router.
 ---
 
 ## Лицензия
-MIT
+Apache-2.0
 
 ---
 
